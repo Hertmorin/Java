@@ -50,86 +50,108 @@ public class Memory {
 		L1_Access++;
 		if (L1_Caches.get(o.getThreadId())[Integer.parseInt(o.getIndex_L1(), 2)].equals(o.getTag_L1())) {
 			L1_Hits++;
-			writer.write("L1 " + Long.parseLong(o.getIndex_L1(), 2) + " " + o.getOperationType() + " " + o.getThreadId()
-					+ " Hit " + (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
-					+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
-					+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
+			int temp = (Integer.parseInt(o.getIndex_L1(), 2) / blockSize) * blockSize;
+			for (int i = 0; i < blockSize; i++) {
+				L1_Caches.get(o.getThreadId())[temp + i] = o.getTag_L1();
+				writer.write("L1 " + (temp + i) + " " + o.getOperationType() + " " + o.getThreadId() + " Hit "
+						+ (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
+						+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
+						+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
+			}
 		} else {
 			L1_Misses++;
+			int temp = (Integer.parseInt(o.getIndex_L1(), 2) / blockSize) * blockSize;
 			for (int i = 0; i < blockSize; i++) {
-				int temp = (Integer.parseInt(o.getIndex_L1(), 2) / blockSize) * blockSize;
-				L1_Caches.get(o.getThreadId())[temp + i] = o.getTag_L1();
 				writer.write("L1 " + (temp + i) + " " + o.getOperationType() + " " + o.getThreadId() + " Miss "
 						+ (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
 						+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
 						+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
 			}
 			read_L2(o);
+			for (int i = 0; i < blockSize; i++) {
+				L1_Caches.get(o.getThreadId())[temp + i] = o.getTag_L1();
+				writer.write("L1 " + (temp + i) + " " + o.getOperationType() + " " + o.getThreadId() + " Hit "
+						+ (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
+						+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
+						+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
+			}
 		}
 	}
 
-	public String read_L2(Operation o) throws NumberFormatException, IOException {
+	public void read_L2(Operation o) throws NumberFormatException, IOException {
 		L2_Access++;
 		if (L2_Cache[Integer.parseInt(o.getIndex_L2(), 2)].equals(o.getTag_L2())) {
-			writer.write("L2 " + Long.parseLong(o.getIndex_L2(), 2) + " " + o.getOperationType() + " " + o.getThreadId()
-					+ " Hit " + (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
-					+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
-					+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
 			L2_Hits++;
+			int temp = (Integer.parseInt(o.getIndex_L2(), 2) / blockSize) * blockSize;
+			for (int i = 0; i < blockSize; i++) {
+				L2_Cache[temp + i] = o.getTag_L2();
+				writer.write("L2 " + (temp + i) + " " + o.getOperationType() + " " + o.getThreadId() + " Hit "
+						+ (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
+						+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
+						+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
+			}
 		} else {
 			L2_Misses++;
-
+			int temp = (Integer.parseInt(o.getIndex_L2(), 2) / blockSize) * blockSize;
 			for (int i = 0; i < blockSize; i++) {
-				int temp = (Integer.parseInt(o.getIndex_L2(), 2) / blockSize) * blockSize;
-				L2_Cache[temp + i] = o.getTag_L2();
 				writer.write("L2 " + (temp + i) + " " + o.getOperationType() + " " + o.getThreadId() + " Miss "
 						+ (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
 						+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
 						+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
 			}
 			read_main(o);
-
+			for (int i = 0; i < blockSize; i++) {
+				L2_Cache[temp + i] = o.getTag_L2();
+				writer.write("L2 " + (temp + i) + " " + o.getOperationType() + " " + o.getThreadId() + " Hit "
+						+ (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
+						+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
+						+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
+			}
 		}
-		return o.getTag_L1();
 	}
 
-	public String read_main(Operation o) throws NumberFormatException, IOException {
-		writer.write("Main " + Long.parseLong(o.getMemoryAddress(), 16) + " " + o.getOperationType() + " "
-				+ o.getThreadId() + " Hit " + (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
-				+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
-				+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
-		return o.getTag_L2();
+	public void read_main(Operation o) throws NumberFormatException, IOException {
+		long temp = (Long.parseLong(o.getMemoryAddress(), 16) / blockSize) * blockSize;
+		for (int i = 0; i < blockSize; i++) {
+			writer.write("Main " + (temp + i) + " " + o.getOperationType() + " " + o.getThreadId() + " Hit "
+					+ (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
+					+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
+					+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
+		}
 	}
 
 	public void write_L1(Operation o) throws NumberFormatException, IOException {
+		int temp = (Integer.parseInt(o.getIndex_L1(), 2) / blockSize) * blockSize;
 		for (int i = 0; i < blockSize; i++) {
-			int temp = (Integer.parseInt(o.getIndex_L1(), 2) / blockSize) * blockSize;
 			L1_Caches.get(o.getThreadId())[temp + i] = o.getTag_L1();
+			writer.write("L1 " + (temp + i) + " " + o.getOperationType() + " " + o.getThreadId() + " Hit "
+					+ (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
+					+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
+					+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
 		}
-		writer.write("L1 " + Long.parseLong(o.getIndex_L1(), 2) + " " + o.getOperationType() + " " + o.getThreadId()
-				+ " Hit " + (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
-				+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
-				+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
 		write_L2(o);
 	}
 
 	public void write_L2(Operation o) throws NumberFormatException, IOException {
+		int temp = (Integer.parseInt(o.getIndex_L2(), 2) / blockSize) * blockSize;
 		for (int i = 0; i < blockSize; i++) {
-			int temp = (Integer.parseInt(o.getIndex_L2(), 2) / blockSize) * blockSize;
 			L2_Cache[temp + i] = o.getTag_L2();
+			writer.write("L2 " + (temp + i) + " " + o.getOperationType() + " " + o.getThreadId() + " Hit "
+					+ (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
+					+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
+					+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
 		}
-		writer.write("L2 " + Long.parseLong(o.getIndex_L2(), 2) + " " + o.getOperationType() + " " + o.getThreadId()
-				+ " Hit " + (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
-				+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
-				+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
 		write_main(o);
 	}
 
 	public void write_main(Operation o) throws NumberFormatException, IOException {
-		writer.write("Main " + Long.parseLong(o.getMemoryAddress(), 16) + " " + o.getOperationType() + " "
-				+ o.getThreadId() + " Hit " + (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
-				+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
-				+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
+		long temp = (Long.parseLong(o.getMemoryAddress(), 16) / blockSize) * blockSize;
+		for (int i = 0; i < blockSize; i++) {
+			writer.write("Main " + (temp + i) + " " + o.getOperationType() + " " + o.getThreadId() + " Hit "
+					+ (((Long.parseLong(o.getMemoryAddress(), 16) / 255) / 255) % 255) + " "
+					+ ((Long.parseLong(o.getMemoryAddress(), 16) / 255) % 255) + " "
+					+ (Long.parseLong(o.getMemoryAddress(), 16) % 255) + "\n");
+		}
 	}
 
 	public float getL1_Access() {
